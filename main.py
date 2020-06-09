@@ -7,17 +7,20 @@ class Job():
         self.start = None  # 开始时间
         self.finish = None  # 完成时间
         self.tat = None  # Turnaround time 周转时间
-        self.tat_w = None  # Weighted turnarount time 带权周转时间
+        self.tat_w = None  # Weighted turnaround time 带权周转时间
         self.remain = D(str(duration))  # 剩余时间
-        self.slice = None
+        self.slice = None  # 时间片大小，仅用于RR
+        self.rr = None  # Response ratio 响应比，仅用于HRRN
 
 # 先来先服务
 def FCFS(jobs:list):
+    # 未到达作业队列
+    remain_jobs = jobs.copy()
     # 按照提交时间排序
-    jobs.sort(key=lambda x:x.submit)
+    remain_jobs.sort(key=lambda x: x.submit)
     time = D(str(0))
     # 依次处理作业
-    for i in jobs:
+    for i in remain_jobs:
         if i.submit > time:
             time = i.submit
         i.start = time
@@ -29,10 +32,10 @@ def FCFS(jobs:list):
 
 # 短作业优先
 def SFJ(jobs:list):
-    # 按照提交时间排序
-    jobs.sort(key=lambda x:x.submit)
     # 未到达作业队列
     remain_jobs = jobs.copy()
+    # 按照提交时间排序
+    remain_jobs.sort(key=lambda x: x.submit)
     # 已到达但是在等待的作业序列
     waiting_jobs = []
     time = D(str(0))
@@ -57,14 +60,16 @@ def SFJ(jobs:list):
         for i in remain_jobs:
             if i.submit <= time:
                 waiting_jobs.append(i)
+        for i in waiting_jobs:
+            if i in remain_jobs:
                 remain_jobs.remove(i)
 
 # 最短剩余时间优先
 def SRTF(jobs:list):
-    # 按照提交时间排序
-    jobs.sort(key=lambda x:x.submit)
     # 未到达作业队列
     remain_jobs = jobs.copy()
+    # 按照提交时间排序
+    remain_jobs.sort(key=lambda x: x.submit)
     # 已到达但是在等待的作业序列
     waiting_jobs = []
     time = D(str(0))
@@ -117,13 +122,15 @@ def SRTF(jobs:list):
 
 # 时间片轮转
 def RR(jobs:list, slice_size = 1):
+    # 设置时间片大小
     slice_size = D(str(slice_size))
+    # 未到达作业队列
+    remain_jobs = jobs.copy()
     # 按照提交时间排序
-    jobs.sort(key=lambda x:x.submit)
-    for i in  jobs:
+    remain_jobs.sort(key=lambda x: x.submit)
+    for i in  remain_jobs:
         i.slice = slice_size
     time = D(str(0))
-    remain_jobs = jobs.copy()
     waiting_jobs = []
     processing = False
     while len(remain_jobs) > 0 or len(waiting_jobs) > 0 or processing == True:
@@ -156,7 +163,46 @@ def RR(jobs:list, slice_size = 1):
                 waiting_jobs.append(job)
                 processing = False
 
-
+# 高响应比优先
+def HRRN(jobs: list):
+    # 未到达作业队列
+    remain_jobs = jobs.copy()
+    # 按照提交时间排序
+    remain_jobs.sort(key=lambda x: x.submit)
+    # 已到达但是在等待的作业序列
+    waiting_jobs = []
+    time = D(str(0))
+    processing = False
+    # 循环处理，直到没有剩余作业
+    while len(remain_jobs) > 0 or len(waiting_jobs) > 0 or processing == True:
+        if not processing:
+            if len(waiting_jobs) > 0:
+                # 更新响应比
+                for i in waiting_jobs:
+                    i.rr = D(str(1)) + ((time - i.submit) / i.duration)
+                # 泵出响应比最高的作业
+                waiting_jobs.sort(key=lambda x:x.rr, reverse=True)
+                job = waiting_jobs.pop(0)
+                job.start = time
+            else:
+                job = remain_jobs.pop(0)
+                time = job.submit
+                job.start = time
+            processing = True
+        else:
+            time += job.duration
+            job.finish = time
+            job.tat = job.finish - job.submit
+            job.tat_w = job.tat / job.duration
+            job.remain -= job.duration
+            processing = False
+            # 查看是否有新的作业到达
+            for i in remain_jobs:
+                if i.submit <= time:
+                    waiting_jobs.append(i)
+            for i in waiting_jobs:
+                if i in remain_jobs:
+                    remain_jobs.remove(i)
 
 def display(jobs:list):
     sum_tat = D(str(0))
@@ -177,28 +223,36 @@ def display(jobs:list):
     print('平均带权周转时间:', sum_tat_w/D(len(jobs)))
 
 if __name__ == '__main__':
-    job_num = int(input('请输入作业个数:'))
-    jobs = []
-    for i in range(job_num):
-        print('----------------------------')
-        submit = float(input('请输入第' + str(i+1) + '个作业的提交时间:'))
-        duration = float(input('请输入第' + str(i+1) + '个作业的运行时间:'))
-        job = Job(submit, duration)
-        jobs.append(job)
-    print('----------------------------')
-    print('1.先来先服务FCFS')
-    print('2.短作业优先SFJ')
-    print('3.最短剩余时间优先')
-    print('4.时间片轮转')
-    choice = input('请选择调度算法:')
-    if choice == '1':
-        FCFS(jobs)
-    elif choice == '2':
-        SFJ(jobs)
-    elif choice == '3':
-        SRTF(jobs)
-    elif choice == '4':
-        slice = int(input('请输入时间片大小:'))
-        RR(jobs, slice)
+    # job_num = int(input('请输入作业个数:'))
+    # jobs = []
+    # for i in range(job_num):
+    #     print('----------------------------')
+    #     submit = float(input('请输入第' + str(i+1) + '个作业的提交时间:'))
+    #     duration = float(input('请输入第' + str(i+1) + '个作业的运行时间:'))
+    #     job = Job(submit, duration)
+    #     jobs.append(job)
+    # print('----------------------------')
+    # print('1.先来先服务FCFS')
+    # print('2.短作业优先SFJ')
+    # print('3.最短剩余时间优先')
+    # print('4.时间片轮转')
+    # choice = input('请选择调度算法:')
+    # if choice == '1':
+    #     FCFS(jobs)
+    # elif choice == '2':
+    #     SFJ(jobs)
+    # elif choice == '3':
+    #     SRTF(jobs)
+    # elif choice == '4':
+    #     slice = int(input('请输入时间片大小:'))
+    #     RR(jobs, slice)
+    # display(jobs)
+    jobs = [
+        Job(0, 3),
+        Job(1, 6),
+        Job(2, 4),
+        Job(3, 5),
+        Job(4, 2)
+    ]
+    HRRN(jobs)
     display(jobs)
-
