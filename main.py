@@ -249,10 +249,10 @@ if __name__ == '__main__':
     # display(jobs)
     jobs = [
         Job(0, 3),
-        Job(1, 6),
-        Job(2, 4),
-        Job(3, 5),
-        Job(4, 2)
+        Job(2, 6),
+        Job(4, 4),
+        Job(6, 5),
+        Job(8, 2)
     ]
-    HRRN(jobs)
+    RR(jobs)
     display(jobs)
