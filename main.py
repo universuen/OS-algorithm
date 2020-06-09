@@ -204,6 +204,79 @@ def HRRN(jobs: list):
                 if i in remain_jobs:
                     remain_jobs.remove(i)
 
+# 多级反馈队列
+def MFQS(jobs: list, slices:list):
+    queue_num = len(slices)
+    # 所有队列
+    queues = [[] for i in range(queue_num)]
+    # 未到达作业队列
+    remain_jobs = jobs.copy()
+    # 按照提交时间排序
+    remain_jobs.sort(key=lambda x: x.submit)
+    # 初始化时间
+    time = D(str(0))
+    # 记录上一时刻处理的队列
+    last_i = 0
+
+    # 判断是否有作业未完成
+    def all_finished():
+        for i in jobs:
+            if i.finish == None:
+                return False
+        return True
+
+    while not all_finished():
+        # 如果还有未到达的作业，判断其在该时刻是否到达
+        if len(remain_jobs) > 0:
+            next_job = remain_jobs[0]
+            # 如果到达了则将其加入第一个队列
+            if next_job.submit == time:
+                remain_jobs.pop(0)
+                next_job.slice = slices[0]
+                queues[0].append(next_job)
+
+        # 更新队列
+        for i in range(queue_num):
+            if len(queues[i]) > 0:
+                # 获取队首作业并更新相关参数
+                job = queues[i][0]
+                print(job.submit, job.remain - 1)
+                job.slice -= 1
+                job.remain -= 1
+                # 如果是第一个队列，则记录作业的开始时间
+                if i == 0:
+                    job.start = time
+                if job.remain == 0:
+                    job.finish = time + 1
+                    job.tat = job.finish - job.submit
+                    job.tat_w = job.tat / job.duration
+                    queues[i].pop(0)
+                    break
+                # 如果该队列优先于上一时刻处理的队列,则将上一时刻处理的作业放到队尾
+                if i < last_i:
+                    if len(queues[last_i]) > 0:
+                        temp_job = queues[last_i][0]
+                        queues[last_i].pop(0)
+                        temp_job.slice = slices[last_i]
+                        queues[last_i].append(temp_job)
+                last_i = i
+                # 时间片已耗尽
+                if job.slice == 0:
+                    queues[i].pop(0)
+                    # 如果是最后一个队列则将作业加入队尾
+                    if i == queue_num - 1:
+                        job.slice = slices[i]
+                        queues[i].append(job)
+                    # 否则将作业投递到下一级队列
+                    else:
+                        job.slice = slices[i + 1]
+                        queues[i + 1].append(job)
+                break
+
+        # 更新时间
+        time += 1
+
+# 显示结果
 def display(jobs:list):
     sum_tat = D(str(0))
     sum_tat_w = D(str(0))
@@ -223,36 +296,57 @@ def display(jobs:list):
     print('平均带权周转时间:', sum_tat_w/D(len(jobs)))
 
 if __name__ == '__main__':
-    # job_num = int(input('请输入作业个数:'))
-    # jobs = []
-    # for i in range(job_num):
-    #     print('----------------------------')
-    #     submit = float(input('请输入第' + str(i+1) + '个作业的提交时间:'))
-    #     duration = float(input('请输入第' + str(i+1) + '个作业的运行时间:'))
-    #     job = Job(submit, duration)
-    #     jobs.append(job)
-    # print('----------------------------')
-    # print('1.先来先服务FCFS')
-    # print('2.短作业优先SFJ')
-    # print('3.最短剩余时间优先')
-    # print('4.时间片轮转')
-    # choice = input('请选择调度算法:')
-    # if choice == '1':
-    #     FCFS(jobs)
-    # elif choice == '2':
-    #     SFJ(jobs)
-    # elif choice == '3':
-    #     SRTF(jobs)
-    # elif choice == '4':
-    #     slice = int(input('请输入时间片大小:'))
-    #     RR(jobs, slice)
-    # display(jobs)
-    jobs = [
-        Job(0, 3),
-        Job(2, 6),
-        Job(4, 4),
-        Job(6, 5),
-        Job(8, 2)
-    ]
-    RR(jobs)
+    job_num = int(input('请输入作业个数:'))
+    jobs = []
+    for i in range(job_num):
+        print('----------------------------')
+        submit = float(input('请输入第' + str(i+1) + '个作业的提交时间:'))
+        duration = float(input('请输入第' + str(i+1) + '个作业的运行时间:'))
+        job = Job(submit, duration)
+        jobs.append(job)
+    print('----------------------------')
+    print('1.先来先服务FCFS')
+    print('2.短作业优先SFJ')
+    print('3.最短剩余时间优先SRTF')
+    print('4.时间片轮转RR')
+    print('5.高响应比优先HRRN')
+    print('6.多级反馈队列MFQS')
+    choice = input('请选择调度算法:')
+    if choice == '1':
+        FCFS(jobs)
+    elif choice == '2':
+        SFJ(jobs)
+    elif choice == '3':
+        SRTF(jobs)
+    elif choice == '4':
+        slice = int(input('请输入时间片大小:'))
+        RR(jobs, slice)
+    elif choice == '5':
+        HRRN(jobs)
+    elif choice == '6':
+        print('----------------------------')
+        queue_num = int(input('请输入队列个数:'))
+        slices = []
+        for i in range(queue_num):
+            slice = int(input('请输入第' + str(i+1) + '个队列的时间片大小:'))
+            slices.append(slice)
+        MFQS(jobs, slices)
     display(jobs)
+
+'''Short Cut'''
+'''If you are familiar with Python syntax and the arguments of class and functions above, '''
+'''annotate the code above and use below.'''
+    # jobs = [
+    #     Job(0, 3),
+    #     Job(1, 8),
+    #     Job(3, 4),
+    #     Job(4, 5),
+    #     Job(5, 7)
+    # ]
+    # FCFS(jobs)
+    # SFJ(jobs)
+    # SRTF(jobs)
+    # RR(jobs, 1)
+    # HRRN(jobs)
+    # MFQS(jobs, [1, 2, 4])
+    # display(jobs)
