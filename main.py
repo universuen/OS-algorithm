@@ -295,57 +295,57 @@ def display(jobs:list):
     print('平均带权周转时间:', sum_tat_w/D(len(jobs)))
 
 if __name__ == '__main__':
-    job_num = int(input('请输入作业个数:'))
-    jobs = []
-    for i in range(job_num):
-        print('----------------------------')
-        submit = float(input('请输入第' + str(i+1) + '个作业的提交时间:'))
-        duration = float(input('请输入第' + str(i+1) + '个作业的运行时间:'))
-        job = Job(submit, duration)
-        jobs.append(job)
-    print('----------------------------')
-    print('1.先来先服务FCFS')
-    print('2.短作业优先SFJ')
-    print('3.最短剩余时间优先SRTF')
-    print('4.时间片轮转RR')
-    print('5.高响应比优先HRRF')
-    print('6.多级反馈队列MFQS')
-    choice = input('请选择调度算法:')
-    if choice == '1':
-        FCFS(jobs)
-    elif choice == '2':
-        SFJ(jobs)
-    elif choice == '3':
-        SRTF(jobs)
-    elif choice == '4':
-        slice = int(input('请输入时间片大小:'))
-        RR(jobs, slice)
-    elif choice == '5':
-        HRRF(jobs)
-    elif choice == '6':
-        print('----------------------------')
-        queue_num = int(input('请输入队列个数:'))
-        slices = []
-        for i in range(queue_num):
-            slice = int(input('请输入第' + str(i+1) + '个队列的时间片大小:'))
-            slices.append(slice)
-        MFQS(jobs, slices)
-    display(jobs)
+    # job_num = int(input('请输入作业个数:'))
+    # jobs = []
+    # for i in range(job_num):
+    #     print('----------------------------')
+    #     submit = float(input('请输入第' + str(i+1) + '个作业的提交时间:'))
+    #     duration = float(input('请输入第' + str(i+1) + '个作业的运行时间:'))
+    #     job = Job(submit, duration)
+    #     jobs.append(job)
+    # print('----------------------------')
+    # print('1.先来先服务FCFS')
+    # print('2.短作业优先SFJ')
+    # print('3.最短剩余时间优先SRTF')
+    # print('4.时间片轮转RR')
+    # print('5.高响应比优先HRRF')
+    # print('6.多级反馈队列MFQS')
+    # choice = input('请选择调度算法:')
+    # if choice == '1':
+    #     FCFS(jobs)
+    # elif choice == '2':
+    #     SFJ(jobs)
+    # elif choice == '3':
+    #     SRTF(jobs)
+    # elif choice == '4':
+    #     slice = int(input('请输入时间片大小:'))
+    #     RR(jobs, slice)
+    # elif choice == '5':
+    #     HRRF(jobs)
+    # elif choice == '6':
+    #     print('----------------------------')
+    #     queue_num = int(input('请输入队列个数:'))
+    #     slices = []
+    #     for i in range(queue_num):
+    #         slice = int(input('请输入第' + str(i+1) + '个队列的时间片大小:'))
+    #         slices.append(slice)
+    #     MFQS(jobs, slices)
+    # display(jobs)
 
-'''Short Cut'''
-'''If you are familiar with Python syntax and the arguments of class and functions above, '''
-'''annotate the code above and use below.'''
-    # jobs = [
-    #     Job(0, 3),
-    #     Job(1, 8),
-    #     Job(3, 4),
-    #     Job(4, 5),
-    #     Job(5, 7)
-    # ]
+# '''Short Cut'''
+# '''If you are familiar with Python syntax and the arguments of class and functions above, '''
+# '''annotate the code above and use below.'''
+    jobs = [
+        Job(1, 6),
+        Job(5, 9),
+        Job(2, 4),
+        Job(3, 5),
+        Job(4, 2)
+    ]
     # FCFS(jobs)
     # SFJ(jobs)
     # SRTF(jobs)
-    # RR(jobs, 1)
+    RR(jobs, 4)
     # HRRF(jobs)
     # MFQS(jobs, [1, 2, 4])
-    # display(jobs)
+    display(jobs)
