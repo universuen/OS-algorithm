@@ -10,7 +10,7 @@ class Job():
         self.tat_w = None  # Weighted turnaround time 带权周转时间
         self.remain = D(str(duration))  # 剩余时间
         self.slice = None  # 时间片大小，仅用于RR
-        self.rr = None  # Response ratio 响应比，仅用于HRRN
+        self.rr = None  # Response ratio 响应比，仅用于HRRF
 
 # 先来先服务
 def FCFS(jobs:list):
@@ -164,7 +164,7 @@ def RR(jobs:list, slice_size = 1):
                 processing = False
 
 # 高响应比优先
-def HRRN(jobs: list):
+def HRRF(jobs: list):
     # 未到达作业队列
     remain_jobs = jobs.copy()
     # 按照提交时间排序
@@ -240,7 +240,6 @@ def MFQS(jobs: list, slices:list):
             if len(queues[i]) > 0:
                 # 获取队首作业并更新相关参数
                 job = queues[i][0]
-                print(job.submit, job.remain - 1)
                 job.slice -= 1
                 job.remain -= 1
                 # 如果是第一个队列，则记录作业的开始时间
@@ -309,7 +308,7 @@ if __name__ == '__main__':
     print('2.短作业优先SFJ')
     print('3.最短剩余时间优先SRTF')
     print('4.时间片轮转RR')
-    print('5.高响应比优先HRRN')
+    print('5.高响应比优先HRRF')
     print('6.多级反馈队列MFQS')
     choice = input('请选择调度算法:')
     if choice == '1':
@@ -322,7 +321,7 @@ if __name__ == '__main__':
         slice = int(input('请输入时间片大小:'))
         RR(jobs, slice)
     elif choice == '5':
-        HRRN(jobs)
+        HRRF(jobs)
     elif choice == '6':
         print('----------------------------')
         queue_num = int(input('请输入队列个数:'))
@@ -347,6 +346,6 @@ if __name__ == '__main__':
     # SFJ(jobs)
     # SRTF(jobs)
     # RR(jobs, 1)
-    # HRRN(jobs)
+    # HRRF(jobs)
     # MFQS(jobs, [1, 2, 4])
     # display(jobs)
