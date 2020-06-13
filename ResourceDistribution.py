@@ -1,16 +1,22 @@
 import numpy as np
 
 class Banker():
-    def __init__(self, available:np.ndarray, max:np.ndarray, allocation:np.ndarray):
+    def __init__(self, available:list, max:list, allocation:list):
+        available = np.asarray(available)
+        max = np.asarray(max)
+        allocation = np.asarray(allocation)
+
         self.shape = max.shape
         assert available.shape[0] == self.shape[1]
         assert allocation.shape == self.shape
+
         self.available = available
         self.max = max
         self.allocation = allocation
         self.need = max - allocation
 
-    def request(self, requests:np.ndarray):
+    def request(self, requests:list):
+        requests = np.asarray(requests)
         result = []
         for i in range(self.shape[0]):
             if not self._less_or_equal(requests[i], self.need[i]):
@@ -58,11 +64,30 @@ class Banker():
                 return False
         return True
 
+class Test(Banker):
+    def __init__(self, available:list, max:list, allocation:list, requests:list):
+        super().__init__(available, max, allocation)
+        requests = np.asarray(requests)
+        self.requests = requests
 
+    def is_deadlock(self):
+        work = self.available.copy()
+        finish = []
+        for i in self.allocation:
+            finish.append(i == 0)
+        exit = False
+        sentence = []
+        while not exit:
+            exit = True
+            for i in range(self.shape[0]):
+                if finish[i] == False and self._less_or_equal(self.need[i], work):
+                    work += self.allocation[i]
+                    finish[i] = True
+                    exit = False
+        return not False in finish
 
 if __name__ == '__main__':
     available = [3, 3, 2]
-    available = np.asarray(available)
 
     max = [
         [8, 5, 3],
@@ -71,7 +96,6 @@ if __name__ == '__main__':
         [2, 2, 2],
         [5, 3, 3]
     ]
-    max = np.asarray(max)
 
     allocation = [
         [1, 1, 0],
@@ -80,7 +104,6 @@ if __name__ == '__main__':
         [2, 1, 1],
         [1, 0, 2]
     ]
-    allocation = np.asarray(allocation)
 
     banker = Banker(available, max, allocation)
     print(banker.is_safe())
@@ -92,6 +115,21 @@ if __name__ == '__main__':
         [0, 0, 0],
         [0, 0, 0]
     ]
-    requests = np.asarray(requests)
 
     print(banker.request(requests))
+
+    # available = [1, 2, 1, 3]
+    # max = [
+    #     [1, 0, 0, 0],
+    #     [0, 0, 1, 0],
+    #     [0, 1, 0, 0]
+    # ]
+    # allocation = [
+    #     [0, 1, 0, 0],
+    #     [1, 1, 0, 0],
+    #     [0, 0, 1, 0]
+    # ]
+    # requests = [
+    #
+    # ]
+    # test = Test(available, max, allocation, requests)
