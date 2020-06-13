@@ -142,4 +142,4 @@ if __name__ == '__main__':
         [0, 0]
     ]
     graph = Graph(available, allocation, requests)
-    print(Graph.is_deadlock())
+    print(graph.is_deadlock())
