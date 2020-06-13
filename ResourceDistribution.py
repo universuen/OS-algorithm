@@ -64,27 +64,37 @@ class Banker():
                 return False
         return True
 
-class Test(Banker):
-    def __init__(self, available:list, max:list, allocation:list, requests:list):
-        super().__init__(available, max, allocation)
+class Test():
+    def __init__(self, available:list, allocation:list, requests:list):
+        available = np.asarray(available)
+        allocation = np.asarray(allocation)
         requests = np.asarray(requests)
+
+        self.shape = allocation.shape
+        self.available = available
+        self.allocation = allocation
         self.requests = requests
 
     def is_deadlock(self):
         work = self.available.copy()
         finish = []
         for i in self.allocation:
-            finish.append(i == 0)
+            finish.append((i == np.zeros(self.shape[1])).all())
         exit = False
-        sentence = []
         while not exit:
             exit = True
             for i in range(self.shape[0]):
-                if finish[i] == False and self._less_or_equal(self.need[i], work):
+                if finish[i] == False and self._less_or_equal(self.requests[i], work):
                     work += self.allocation[i]
                     finish[i] = True
                     exit = False
-        return not False in finish
+        return False in finish
+
+    def _less_or_equal(self, a, b):
+        for i, j in zip(a, b):
+            if i > j:
+                return False
+        return True
 
 if __name__ == '__main__':
     available = [3, 3, 2]
@@ -118,18 +128,18 @@ if __name__ == '__main__':
 
     print(banker.request(requests))
 
-    # available = [1, 2, 1, 3]
-    # max = [
-    #     [1, 0, 0, 0],
-    #     [0, 0, 1, 0],
-    #     [0, 1, 0, 0]
-    # ]
-    # allocation = [
-    #     [0, 1, 0, 0],
-    #     [1, 1, 0, 0],
-    #     [0, 0, 1, 0]
-    # ]
-    # requests = [
-    #
-    # ]
-    # test = Test(available, max, allocation, requests)
+    available = [0, 0]
+    allocation = [
+        [0, 1],
+        [1, 0],
+        [1, 0],
+        [0, 1]
+    ]
+    requests = [
+        [1, 0],
+        [0, 0],
+        [0, 1],
+        [0, 0]
+    ]
+    test = Test(available, allocation, requests)
+    print(test.is_deadlock())
