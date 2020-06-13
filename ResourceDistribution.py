@@ -64,7 +64,7 @@ class Banker():
                 return False
         return True
 
-class Test():
+class Graph():
     def __init__(self, available:list, allocation:list, requests:list):
         available = np.asarray(available)
         allocation = np.asarray(allocation)
@@ -141,5 +141,5 @@ if __name__ == '__main__':
         [0, 1],
         [0, 0]
     ]
-    test = Test(available, allocation, requests)
-    print(test.is_deadlock())
+    graph = Graph(available, allocation, requests)
+    print(Graph.is_deadlock())
